@@ -1,0 +1,68 @@
+import type { Program } from "../types";
+import { IMG, unsplash } from "./images";
+
+export const programs: Program[] = [
+  {
+    id: "muscle-building",
+    title: "Muscle Building",
+    description: "Progressive hypertrophy training built around compound lifts and volume-driven splits.",
+    image: unsplash(IMG.chalkDeadliftGarage),
+    duration: "12 Weeks",
+    difficulty: "Intermediate",
+    sessions: "5x / week",
+  },
+  {
+    id: "fat-loss",
+    title: "Fat Loss",
+    description: "Metabolic conditioning and strength work designed to strip fat while preserving lean mass.",
+    image: unsplash(IMG.trackAerialRunners),
+    duration: "8 Weeks",
+    difficulty: "All Levels",
+    sessions: "4x / week",
+  },
+  {
+    id: "strength-training",
+    title: "Strength Training",
+    description: "Low-rep, high-load programming centered on the squat, bench, and deadlift.",
+    image: unsplash(IMG.deadliftFeetCloseup),
+    duration: "10 Weeks",
+    difficulty: "Advanced",
+    sessions: "4x / week",
+  },
+  {
+    id: "bodybuilding",
+    title: "Bodybuilding",
+    description: "Competition-style body part splits with a focus on symmetry, peak, and definition.",
+    image: unsplash(IMG.pullupBackMuscular),
+    duration: "16 Weeks",
+    difficulty: "Advanced",
+    sessions: "6x / week",
+  },
+  {
+    id: "personal-training",
+    title: "Personal Training",
+    description: "1-on-1 coaching with a fully customized plan built around your goals and schedule.",
+    image: unsplash(IMG.dumbbellRowBenchWoman),
+    duration: "Ongoing",
+    difficulty: "All Levels",
+    sessions: "Flexible",
+  },
+  {
+    id: "functional-training",
+    title: "Functional Training",
+    description: "Athletic, movement-based training that builds real-world strength and mobility.",
+    image: unsplash(IMG.kettlebellSwingAthlete),
+    duration: "6 Weeks",
+    difficulty: "Intermediate",
+    sessions: "3x / week",
+  },
+  {
+    id: "beginner-program",
+    title: "Beginner Program",
+    description: "A guided introduction to strength training with form-first coaching and steady progression.",
+    image: unsplash(IMG.abCrunchWindow),
+    duration: "6 Weeks",
+    difficulty: "Beginner",
+    sessions: "3x / week",
+  },
+];

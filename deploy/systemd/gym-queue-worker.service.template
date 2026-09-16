@@ -1,0 +1,24 @@
+# systemd unit for the Laravel queue worker. No jobs are queued by the
+# app today (see DEPLOYMENT.md §6), but QUEUE_CONNECTION=database is
+# already configured — install this now so background jobs work the
+# moment any are added, without an extra deployment step later.
+#
+# Render with deploy/render-templates.sh, then:
+#   sudo cp gym-queue-worker.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now gym-queue-worker
+
+[Unit]
+Description=Gym System - Laravel queue worker
+After=network.target mysql.service
+
+[Service]
+User=${WEB_USER}
+Group=${WEB_GROUP}
+WorkingDirectory=${BACKEND_ROOT}
+ExecStart=/usr/bin/php ${BACKEND_ROOT}/artisan queue:work --sleep=3 --tries=3 --max-time=3600
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

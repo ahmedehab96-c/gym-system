@@ -1,0 +1,169 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.admin-dark, .admin-dark *));
+
+@theme {
+  --color-a-bg: #f5f6f8;
+  --color-a-surface: #ffffff;
+  --color-a-surface-2: #f9fafb;
+  --color-a-border: #e6e8ec;
+  --color-a-text: #14161a;
+  --color-a-muted: #6b7280;
+  --color-a-accent: #d4a72f;
+  --color-a-accent-2: #b8871f;
+
+  --color-a-dark-bg: #0b0c0f;
+  --color-a-dark-surface: #131417;
+  --color-a-dark-surface-2: #191b1f;
+  --color-a-dark-border: #26282e;
+  --color-a-dark-text: #f2f2f4;
+  --color-a-dark-muted: #9297a3;
+
+  --font-display: "Anton", "Bebas Neue", sans-serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+
+  --color-ink: #050505;
+  --color-void: #0a0a0b;
+  --color-charcoal: #111113;
+  --color-surface: #17171a;
+  --color-surface-2: #1e1e22;
+  --color-line: #2a2a2f;
+
+  --color-gold-50: #fbf4e0;
+  --color-gold-100: #f5e5b8;
+  --color-gold-200: #ecd287;
+  --color-gold-300: #e0b94f;
+  --color-gold-400: #d4a72f;
+  --color-gold-500: #c99a24;
+  --color-gold-600: #a67c1a;
+  --color-gold-700: #7d5e14;
+
+  --color-crimson: #e0263c;
+
+  --animate-marquee: marquee 32s linear infinite;
+  --animate-shine: shine 2.4s ease-in-out infinite;
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@keyframes shine {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.85; }
+}
+
+html {
+  scroll-behavior: smooth;
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: var(--color-void);
+  color: #f2f1ec;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--color-gold-400);
+  color: #0a0a0b;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-ink);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-line);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gold-600);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-gold-300);
+  outline-offset: 3px;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+
+.text-gradient-gold {
+  background: linear-gradient(100deg, var(--color-gold-200), var(--color-gold-400) 45%, var(--color-gold-600));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.glass {
+  background: color-mix(in srgb, var(--color-surface) 55%, transparent);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid color-mix(in srgb, white 8%, transparent);
+}
+
+.bg-noise {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+}
+
+/* --- Admin dashboard root: isolates from the marketing site theme --- */
+.admin-root {
+  color-scheme: light;
+  background: var(--color-a-bg);
+  color: var(--color-a-text);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+}
+
+.admin-dark {
+  color-scheme: dark;
+}
+
+.admin-root.admin-dark {
+  background: var(--color-a-dark-bg);
+  color: var(--color-a-dark-text);
+}
+
+.admin-root ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.admin-root ::-webkit-scrollbar-track {
+  background: transparent;
+}
+.admin-root ::-webkit-scrollbar-thumb {
+  background: var(--color-a-border);
+  border-radius: 999px;
+}
+.admin-dark ::-webkit-scrollbar-thumb {
+  background: var(--color-a-dark-border);
+}
+
+.admin-card {
+  background: var(--color-a-surface);
+  border: 1px solid var(--color-a-border);
+}
+.admin-dark .admin-card {
+  background: var(--color-a-dark-surface);
+  border-color: var(--color-a-dark-border);
+}
+
+.admin-glass {
+  background: color-mix(in srgb, var(--color-a-surface) 80%, transparent);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+}
+.admin-dark .admin-glass {
+  background: color-mix(in srgb, var(--color-a-dark-surface) 72%, transparent);
+}

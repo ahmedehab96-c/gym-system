@@ -1,0 +1,62 @@
+# Nginx server block for the React SPA (frontend/dist as document root,
+# produced by `npm run build`). Render with deploy/render-templates.sh.
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${FRONTEND_DOMAIN};
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/letsencrypt;
+    }
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+    server_name ${FRONTEND_DOMAIN};
+
+    ssl_certificate     ${FRONTEND_SSL_CERT};
+    ssl_certificate_key ${FRONTEND_SSL_KEY};
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    root ${FRONTEND_DIST_ROOT};
+    index index.html;
+
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    gzip on;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+    gzip_min_length 1024;
+
+    # Hashed build assets (dist/assets/*) are safe to cache indefinitely;
+    # index.html itself must always be revalidated so deploys take effect
+    # without users being stuck on a stale cached shell.
+    location /assets/ {
+        try_files $uri =404;
+        access_log off;
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # Client-side routing (React Router): any path that isn't a real file
+    # falls back to index.html so /admin/members/42 etc. don't 404 on a
+    # hard refresh.
+    location / {
+        try_files $uri $uri/ /index.html;
+        add_header Cache-Control "no-cache";
+    }
+
+    location ~ /\.(?!well-known) {
+        deny all;
+    }
+
+    access_log /var/log/nginx/${FRONTEND_DOMAIN}-access.log;
+    error_log  /var/log/nginx/${FRONTEND_DOMAIN}-error.log;
+}

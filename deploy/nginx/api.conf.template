@@ -1,0 +1,84 @@
+# Nginx server block for the Laravel API (backend/public as document root).
+# Render with deploy/render-templates.sh (envsubst) after filling in
+# deploy/.env.deploy — do not edit ${...} placeholders directly in a copy
+# you intend to re-render later.
+#
+# Assumes PHP-FPM is already installed and running its own pool (this repo
+# does not configure PHP-FPM itself, only how Nginx talks to it).
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${API_DOMAIN};
+
+    # Let's Encrypt / ACME HTTP-01 challenge path, if used, should be
+    # served here before the redirect. Redirect everything else to HTTPS.
+    location /.well-known/acme-challenge/ {
+        root /var/www/letsencrypt;
+    }
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+    server_name ${API_DOMAIN};
+
+    ssl_certificate     ${API_SSL_CERT};
+    ssl_certificate_key ${API_SSL_KEY};
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    root ${BACKEND_ROOT}/public;
+    index index.php;
+
+    # Matches the upload size limits already enforced by Laravel's
+    # Upload*Request classes (5MB per image/receipt) plus headroom.
+    client_max_body_size 10M;
+
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    charset utf-8;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    # Publicly uploaded files (staff/trainer photos, equipment/facility
+    # images, receipts, gym logo) live under storage/app/public, symlinked
+    # to public/storage by `php artisan storage:link`. No PHP involved —
+    # served directly by Nginx.
+    location /storage/ {
+        try_files $uri =404;
+        access_log off;
+        expires 7d;
+        add_header Cache-Control "public";
+    }
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+
+    location ~ \.php$ {
+        fastcgi_pass ${PHP_FPM_SOCK};
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+        fastcgi_hide_header X-Powered-By;
+    }
+
+    # Deny everything else that isn't routed through index.php or /storage
+    # (in particular: never serve .env, composer files, or storage/ itself
+    # — only its public subtree via /storage/ above).
+    location ~ /\.(?!well-known) {
+        deny all;
+    }
+    location ~* ^/(\.env|composer\.(json|lock)|artisan)$ {
+        deny all;
+    }
+
+    access_log /var/log/nginx/${API_DOMAIN}-access.log;
+    error_log  /var/log/nginx/${API_DOMAIN}-error.log;
+}

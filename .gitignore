@@ -1,0 +1,10 @@
+# Root-level ignores. backend/ and frontend/ each have their own
+# .gitignore for app-specific files (node_modules, vendor, .env, etc.).
+
+# Real deployment variables (domains, paths, TLS cert locations) — only
+# deploy/.env.deploy.example (no real values) should ever be committed.
+/deploy/.env.deploy
+
+# Rendered Nginx/systemd configs contain the real values from
+# deploy/.env.deploy — generated locally, not committed.
+/deploy/rendered/
