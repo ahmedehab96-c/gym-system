@@ -48,6 +48,11 @@ fi
 
 php artisan config:clear --no-interaction >/dev/null 2>&1 || true
 
+echo "=== DEBUG CONFIG ==="
+ls -la bootstrap/cache/ || true
+php artisan tinker --execute="echo 'cors.allowed_origins: '; print_r(config('cors.allowed_origins')); echo 'app.env: ' . config('app.env') . PHP_EOL; echo 'session.driver: ' . config('session.driver') . PHP_EOL;" 2>&1 || true
+echo "===================="
+
 # HTTPS demos behind Railway need secure cookies when APP_URL is https.
 case "${APP_URL:-}" in
   https://*)
