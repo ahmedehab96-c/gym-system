@@ -138,17 +138,6 @@ return Application::configure(basePath: dirname(__DIR__))
 
             report($e);
 
-            // TEMPORARY, one-time deploy-debug tripwire — gated by an
-            // unguessable secret only the deployer has, remove before
-            // the next real commit.
-            if ($request->header('X-Debug-Secret') === 'dd379966641ae294454d4b40725795e3d12ea79260b2a81a') {
-                return ApiResponse::error(
-                    get_class($e).': '.$e->getMessage().' @ '.$e->getFile().':'.$e->getLine(),
-                    [],
-                    500
-                );
-            }
-
             return ApiResponse::error('Something went wrong on our end. Please try again shortly.', [], 500);
         });
     })->create();
