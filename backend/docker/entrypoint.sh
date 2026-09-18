@@ -1,6 +1,10 @@
 #!/bin/sh
 set -e
 
+echo "=== DEBUG ENV ==="
+env | grep -E '^(FRONTEND_URL|LOG_CHANNEL|SESSION_DRIVER|CACHE_STORE|APP_DEBUG|APP_ENV|SEED_ON_START|DB_CONNECTION|QUEUE_CONNECTION|RENDER_EXTERNAL_URL)=' | sort || true
+echo "=================="
+
 if [ ! -f .env ]; then
   cp .env.example .env
 fi
