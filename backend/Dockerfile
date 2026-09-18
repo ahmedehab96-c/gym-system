@@ -30,7 +30,7 @@ COPY . ./
 # Builds the default Laravel welcome-page Vite assets (resources/js/app.js,
 # resources/css/app.css) — this backend has no bundled dashboard to build,
 # just enough to avoid a manifest-missing error when the app boots.
-RUN npm ci && npm run build && rm -rf node_modules
+RUN npm install && npm run build && rm -rf node_modules
 
 RUN composer dump-autoload --optimize \
     && mkdir -p database \
