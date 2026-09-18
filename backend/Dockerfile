@@ -23,7 +23,9 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
+# Keeps dev deps (fakerphp/faker) — the demo re-seeds via factories at
+# every boot (see entrypoint.sh), which needs the fake() helper at runtime.
+RUN composer install --no-scripts --no-autoloader --prefer-dist
 
 COPY . ./
 
