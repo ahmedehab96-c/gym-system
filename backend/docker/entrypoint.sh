@@ -145,4 +145,16 @@ if [ "${RUN_QUEUE_WORKER:-false}" = "true" ] && [ "${QUEUE_CONNECTION:-sync}" !=
 fi
 
 PORT="${PORT:-8000}"
+
+echo "=== DEBUG LOCALHOST HTTP TEST ==="
+php artisan serve --host=127.0.0.1 --port=9999 >/tmp/serve_debug.log 2>&1 &
+DEBUG_SERVE_PID=$!
+sleep 3
+curl -s -i http://127.0.0.1:9999/api/v1/ping 2>&1 || echo "curl failed"
+echo "--- serve log ---"
+cat /tmp/serve_debug.log || true
+kill "$DEBUG_SERVE_PID" 2>/dev/null || true
+wait "$DEBUG_SERVE_PID" 2>/dev/null || true
+echo "=================================="
+
 exec php artisan serve --host=0.0.0.0 --port="${PORT}"
