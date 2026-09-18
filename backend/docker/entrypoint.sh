@@ -53,7 +53,9 @@ php artisan tinker --execute="
 try {
     \$kernel = app(\Illuminate\Contracts\Http\Kernel::class);
     \$request = \Illuminate\Http\Request::create('/api/v1/ping', 'GET');
-    \$response = \$kernel->sendRequestThroughRouter(\$request);
+    \$method = new \ReflectionMethod(\$kernel, 'sendRequestThroughRouter');
+    \$method->setAccessible(true);
+    \$response = \$method->invoke(\$kernel, \$request);
     echo 'STATUS: ' . \$response->getStatusCode() . PHP_EOL;
     echo 'BODY: ' . \$response->getContent() . PHP_EOL;
 } catch (\Throwable \$e) {
