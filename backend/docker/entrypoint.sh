@@ -48,10 +48,21 @@ fi
 
 php artisan config:clear --no-interaction >/dev/null 2>&1 || true
 
-echo "=== DEBUG CONFIG ==="
-ls -la bootstrap/cache/ || true
-php artisan tinker --execute="echo 'cors.allowed_origins: '; print_r(config('cors.allowed_origins')); echo 'app.env: ' . config('app.env') . PHP_EOL; echo 'session.driver: ' . config('session.driver') . PHP_EOL;" 2>&1 || true
-echo "===================="
+echo "=== DEBUG PING TRACE ==="
+php artisan tinker --execute="
+try {
+    \$kernel = app(\Illuminate\Contracts\Http\Kernel::class);
+    \$request = \Illuminate\Http\Request::create('/api/v1/ping', 'GET');
+    \$response = \$kernel->sendRequestThroughRouter(\$request);
+    echo 'STATUS: ' . \$response->getStatusCode() . PHP_EOL;
+    echo 'BODY: ' . \$response->getContent() . PHP_EOL;
+} catch (\Throwable \$e) {
+    echo 'RAW EXCEPTION: ' . get_class(\$e) . ': ' . \$e->getMessage() . PHP_EOL;
+    echo 'AT: ' . \$e->getFile() . ':' . \$e->getLine() . PHP_EOL;
+    echo \$e->getTraceAsString() . PHP_EOL;
+}
+" 2>&1 || true
+echo "========================"
 
 # HTTPS demos behind Railway need secure cookies when APP_URL is https.
 case "${APP_URL:-}" in
