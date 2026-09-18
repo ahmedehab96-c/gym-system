@@ -67,7 +67,7 @@ const PlatformNotFound = lazy(() => import("./platform/pages/PlatformNotFound"))
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route element={<Layout />}>
