@@ -1,10 +1,6 @@
 #!/bin/sh
 set -e
 
-echo "=== DEBUG ENV ==="
-env | grep -E '^(FRONTEND_URL|LOG_CHANNEL|SESSION_DRIVER|CACHE_STORE|APP_DEBUG|APP_ENV|SEED_ON_START|DB_CONNECTION|QUEUE_CONNECTION|RENDER_EXTERNAL_URL)=' | sort || true
-echo "=================="
-
 if [ ! -f .env ]; then
   cp .env.example .env
 fi
@@ -28,48 +24,46 @@ case "${APP_KEY:-}" in
     ;;
 esac
 
-# Persist into .env so artisan/config always see a key even if the platform env is blank.
-if grep -q '^APP_KEY=' .env; then
+# Persist the platform's env vars into .env — `php artisan serve` spawns
+# its own PHP built-in-server subprocess (Symfony Process) that does NOT
+# reliably inherit arbitrary orchestrator-injected env vars the way a
+# directly-exec'd process does; it does reliably read .env. Without this,
+# the serve subprocess silently falls back to .env.example's committed
+# defaults (DB_CONNECTION=mysql, CACHE_STORE=database, ...) even though
+# `artisan migrate`/`db:seed` above (run directly, not through serve) see
+# the real platform values and work fine — a split-brain that's easy to
+# misdiagnose as a code bug.
+set_env() {
+  key="$1"
+  value="$2"
+  [ -z "$value" ] && return 0
   TMP_ENV="$(mktemp)"
-  grep -v '^APP_KEY=' .env > "$TMP_ENV" || true
-  echo "APP_KEY=${APP_KEY}" >> "$TMP_ENV"
+  grep -v "^${key}=" .env > "$TMP_ENV" || true
+  echo "${key}=${value}" >> "$TMP_ENV"
   mv "$TMP_ENV" .env
-else
-  echo "APP_KEY=${APP_KEY}" >> .env
-fi
-export APP_KEY
+}
 
-if [ -n "${APP_URL:-}" ]; then
-  TMP_ENV="$(mktemp)"
-  grep -v '^APP_URL=' .env > "$TMP_ENV" || true
-  echo "APP_URL=${APP_URL}" >> "$TMP_ENV"
-  mv "$TMP_ENV" .env
-fi
+set_env APP_KEY "${APP_KEY}"
+set_env APP_URL "${APP_URL:-}"
+set_env APP_ENV "${APP_ENV:-}"
+set_env APP_DEBUG "${APP_DEBUG:-}"
+set_env FRONTEND_URL "${FRONTEND_URL:-}"
+set_env LOG_CHANNEL "${LOG_CHANNEL:-}"
+set_env DB_CONNECTION "${DB_CONNECTION:-}"
+set_env SESSION_DRIVER "${SESSION_DRIVER:-}"
+set_env CACHE_STORE "${CACHE_STORE:-}"
+set_env QUEUE_CONNECTION "${QUEUE_CONNECTION:-}"
+set_env MAIL_MAILER "${MAIL_MAILER:-}"
+
+export APP_KEY
 
 php artisan config:clear --no-interaction >/dev/null 2>&1 || true
 
-echo "=== DEBUG PING TRACE ==="
-php artisan tinker --execute="
-try {
-    \$kernel = app(\Illuminate\Contracts\Http\Kernel::class);
-    \$request = \Illuminate\Http\Request::create('/api/v1/ping', 'GET');
-    \$method = new \ReflectionMethod(\$kernel, 'sendRequestThroughRouter');
-    \$method->setAccessible(true);
-    \$response = \$method->invoke(\$kernel, \$request);
-    echo 'STATUS: ' . \$response->getStatusCode() . PHP_EOL;
-    echo 'BODY: ' . \$response->getContent() . PHP_EOL;
-} catch (\Throwable \$e) {
-    echo 'RAW EXCEPTION: ' . get_class(\$e) . ': ' . \$e->getMessage() . PHP_EOL;
-    echo 'AT: ' . \$e->getFile() . ':' . \$e->getLine() . PHP_EOL;
-    echo \$e->getTraceAsString() . PHP_EOL;
-}
-" 2>&1 || true
-echo "========================"
-
-# HTTPS demos behind Railway need secure cookies when APP_URL is https.
+# HTTPS demos behind Render / Railway need secure cookies when APP_URL is https.
 case "${APP_URL:-}" in
   https://*)
     export SESSION_SECURE_COOKIE="${SESSION_SECURE_COOKIE:-true}"
+    set_env SESSION_SECURE_COOKIE "${SESSION_SECURE_COOKIE:-true}"
     ;;
 esac
 
@@ -145,16 +139,4 @@ if [ "${RUN_QUEUE_WORKER:-false}" = "true" ] && [ "${QUEUE_CONNECTION:-sync}" !=
 fi
 
 PORT="${PORT:-8000}"
-
-echo "=== DEBUG LOCALHOST HTTP TEST ==="
-php artisan serve --host=127.0.0.1 --port=9999 >/tmp/serve_debug.log 2>&1 &
-DEBUG_SERVE_PID=$!
-sleep 3
-curl -s -i http://127.0.0.1:9999/api/v1/ping 2>&1 || echo "curl failed"
-echo "--- serve log ---"
-cat /tmp/serve_debug.log || true
-kill "$DEBUG_SERVE_PID" 2>/dev/null || true
-wait "$DEBUG_SERVE_PID" 2>/dev/null || true
-echo "=================================="
-
 exec php artisan serve --host=0.0.0.0 --port="${PORT}"
